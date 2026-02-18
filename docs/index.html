@@ -44,6 +44,7 @@
       <span class="role" id="identityRole">Student</span>
     </div>
     <div class="topbar-actions">
+      <button class="secondary" id="notificationsBtn" title="Open notifications">Notifications <span id="notificationCount">0</span></button>
       <button class="secondary" id="themeToggle" title="Toggle dark mode">Dark mode</button>
       <button class="secondary" id="logoutBtn">Logout</button>
     </div>
@@ -128,6 +129,39 @@
     <h2>Admin Approval Queue</h2>
     <p class="meta">Approve or reject organiser requests. Approved Add requests are published to students.</p>
     <div id="adminRequests" class="request-list"></div>
+    <h3>Direct Event Management</h3>
+    <div class="controls">
+      <label>Event ID
+        <input type="number" id="adminEventId" min="1" placeholder="Auto for new">
+      </label>
+      <label>Title
+        <input type="text" id="adminEventTitle" placeholder="Event title">
+      </label>
+      <label>Type
+        <select id="adminEventType">
+          <option value="Workshop">Workshop</option>
+          <option value="Hackathon">Hackathon</option>
+          <option value="Seminar">Seminar</option>
+        </select>
+      </label>
+      <label>Date
+        <input type="date" id="adminEventDate">
+      </label>
+      <label>Domain
+        <input type="text" id="adminEventDomain" placeholder="AI, Cloud Computing">
+      </label>
+      <label>Score
+        <input type="number" id="adminEventScore" min="0" max="100" placeholder="0-100">
+      </label>
+    </div>
+    <label>Description
+      <textarea id="adminEventDescription" placeholder="Describe event"></textarea>
+    </label>
+    <div class="controls">
+      <button id="adminCreateEventBtn" class="success">Create/Update Event</button>
+      <button id="adminDeleteEventBtn" class="danger">Delete Event</button>
+      <button id="adminResetFormBtn" class="secondary">Clear Form</button>
+    </div>
   </div>
 
   <!-- Filters -->
@@ -174,7 +208,35 @@
   <!-- Calendar -->
   <div class="section" id="calendarSection">
     <h2>Event Calendar</h2>
+    <div class="controls">
+      <button id="exportIcsBtn" class="secondary">Export Registered (.ics)</button>
+      <button id="googleCalendarBtn" class="secondary">Open in Google Calendar</button>
+    </div>
     <div id="calendar"></div>
+  </div>
+
+  <!-- Feedback + Sentiment -->
+  <div class="section" id="feedbackSection">
+    <h2>Feedback + Sentiment</h2>
+    <p class="meta">Leave event feedback and get automatic sentiment tagging for organisers and admins.</p>
+    <div class="controls">
+      <label>Event
+        <select id="feedbackEventId"></select>
+      </label>
+      <label>Your Feedback
+        <input type="text" id="feedbackText" placeholder="Great workshop with very practical content">
+      </label>
+      <button id="submitFeedbackBtn">Submit Feedback</button>
+    </div>
+    <div id="feedbackList" class="request-list"></div>
+  </div>
+
+  <!-- Analytics -->
+  <div class="section hidden" id="analyticsDashboard">
+    <h2>Analytics Dashboard</h2>
+    <p class="meta">Admin-only KPIs for registrations, engagement, and sentiment.</p>
+    <div id="analyticsCards" class="analytics-grid"></div>
+    <div id="analyticsBreakdown" class="analytics-breakdown"></div>
   </div>
 
 </div>
@@ -186,6 +248,17 @@
     <h2 id="modalTitle"></h2>
     <p id="modalDescription"></p>
     <button id="registerBtn"></button>
+  </div>
+</div>
+
+<!-- Notifications Drawer -->
+<div id="notificationsDrawer" class="drawer hidden">
+  <div class="drawer-content">
+    <div class="drawer-head">
+      <h3>Notifications</h3>
+      <button class="secondary" id="markNotificationsRead">Mark all read</button>
+    </div>
+    <div id="notificationsList" class="request-list"></div>
   </div>
 </div>
 

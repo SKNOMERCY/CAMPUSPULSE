@@ -330,6 +330,96 @@ button.success {
 }
 .request-status.approved { background: #dcfce7; color: #15803d; }
 .request-status.rejected { background: #fee2e2; color: #b91c1c; }
+.request-item.unread {
+  border-left: 4px solid var(--teal);
+  background: #ecfeff;
+}
+
+.drawer {
+  position: fixed;
+  right: 16px;
+  top: 86px;
+  width: min(420px, 92vw);
+  max-height: 70vh;
+  z-index: 1200;
+}
+
+.drawer-content {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 14px;
+  overflow: auto;
+}
+
+.drawer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+#notificationCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #b91c1c;
+  color: #fff;
+  font-size: 11px;
+  margin-left: 8px;
+  padding: 0 6px;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.analytic-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  background: var(--surface);
+}
+
+.analytic-card strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 20px;
+}
+
+.analytics-breakdown {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.bar-row {
+  display: grid;
+  gap: 6px;
+}
+
+.bar {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.fill.pos { background: #16a34a; }
+.fill.neu { background: #64748b; }
+.fill.neg { background: #dc2626; }
 
 /* ---------------- CALENDAR ---------------- */
 #calendar {
@@ -414,6 +504,8 @@ button.success {
 .theme-dark .card { border-color: #1f2937; }
 .theme-dark .section { border-color: #111827; }
 .theme-dark .badge { background: rgba(244,114,182,0.2); color: #fbcfe8; }
+.theme-dark .request-item.unread { background: rgba(8, 145, 178, 0.15); }
+.theme-dark .bar { background: #1f2937; }
 
 @media (max-width: 900px) {
   .hero-inner { grid-template-columns: 1fr; }
