@@ -1,0 +1,28 @@
+{
+  "faqs": [
+    {
+      "category": "Library",
+      "question": "What are the central library timings during the semester?",
+      "answer": "The central library is open from 8:00 AM to 8:00 PM on weekdays and from 9:00 AM to 4:00 PM on Saturdays. It remains closed on Sundays and notified public holidays.",
+      "contact": "library@campuspulse.edu"
+    },
+    {
+      "category": "Hostel",
+      "question": "What is the hostel entry deadline for residents?",
+      "answer": "Hostel residents are expected to return by 9:30 PM on weekdays and 10:30 PM on weekends unless they have prior written permission from the chief warden.",
+      "contact": "warden.office@campuspulse.edu"
+    },
+    {
+      "category": "Academics",
+      "question": "Can internships be counted for academic credit?",
+      "answer": "Yes. Students can apply for internship-to-credit approval through their department academic coordinator if the internship lasts at least six weeks and includes a faculty-reviewed final report.",
+      "contact": "academics@campuspulse.edu"
+    },
+    {
+      "category": "Labs",
+      "question": "How can students request access to the innovation lab after regular hours?",
+      "answer": "Students must submit a lab access request through their faculty mentor at least one working day in advance. Approved requests are shared with the security desk and lab technician.",
+      "contact": "innovationlab@campuspulse.edu"
+    }
+  ]
+}

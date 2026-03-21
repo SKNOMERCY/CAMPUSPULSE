@@ -1,0 +1,58 @@
+{
+  "clubs": [
+    {
+      "name": "AI Society",
+      "focus_area": "Artificial intelligence, machine learning, and responsible AI projects",
+      "description": "The club runs weekly hands-on sessions, peer study circles, and semester-long project pods for students interested in applied AI.",
+      "meeting_schedule": "Every Wednesday at 5:30 PM in Innovation Lab 2",
+      "location": "Innovation Lab 2",
+      "faculty_coordinator": "Dr. Meera Nair",
+      "student_leads": [
+        "Ananya Rao",
+        "Rahul Menon"
+      ],
+      "membership": "Open to all departments. First-year students can join without prior coding experience.",
+      "recent_activities": [
+        "Hosted a GenAI bootcamp with 180 participants",
+        "Built a smart attendance prototype for the campus incubator"
+      ],
+      "contact_email": "aisociety@campuspulse.edu"
+    },
+    {
+      "name": "Robotics Club",
+      "focus_area": "Embedded systems, robotics design, and autonomous systems",
+      "description": "Members build line followers, drones, and mobile robots for inter-college competitions and internal demos.",
+      "meeting_schedule": "Every Friday at 4:00 PM in the Mechatronics Workshop",
+      "location": "Mechatronics Workshop",
+      "faculty_coordinator": "Prof. Arvind Iyer",
+      "student_leads": [
+        "Sneha Kulkarni",
+        "Vikram S"
+      ],
+      "membership": "Open to students from engineering departments after a short orientation session.",
+      "recent_activities": [
+        "Won second place in the South Zone Robo Race",
+        "Conducted a soldering and sensor integration workshop"
+      ],
+      "contact_email": "robotics@campuspulse.edu"
+    },
+    {
+      "name": "Entrepreneurship Cell",
+      "focus_area": "Startup ideation, venture building, and founder mentoring",
+      "description": "The cell connects students with mentors, startup founders, and pitch events throughout the academic year.",
+      "meeting_schedule": "Alternate Saturdays at 11:00 AM in the Incubation Hub",
+      "location": "Incubation Hub",
+      "faculty_coordinator": "Dr. Kavitha Raman",
+      "student_leads": [
+        "Ishaan Patel",
+        "Madhuri Sen"
+      ],
+      "membership": "Open campus-wide for students interested in startups, product building, and business strategy.",
+      "recent_activities": [
+        "Ran a founder AMA series with alumni entrepreneurs",
+        "Organized a campus startup validation sprint"
+      ],
+      "contact_email": "ecell@campuspulse.edu"
+    }
+  ]
+}

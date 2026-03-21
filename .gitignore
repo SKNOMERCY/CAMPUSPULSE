@@ -1,0 +1,7 @@
+backend/.env
+backend/storage/*.index
+backend/storage/*.json
+backend/storage/*.out
+backend/storage/*.err
+__pycache__/
+*.pyc

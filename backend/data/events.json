@@ -1,0 +1,66 @@
+{
+  "events": [
+    {
+      "title": "Hack the Campus 2026",
+      "event_type": "Hackathon",
+      "organizer": "AI Society and Department of Computer Science",
+      "date": "2026-04-12",
+      "time": "9:00 AM to 9:00 PM",
+      "location": "Central Innovation Hall",
+      "audience": "Open to all undergraduate students in teams of 2 to 4",
+      "description": "A one-day campus hackathon focused on student productivity, accessibility, and sustainability challenges.",
+      "agenda": [
+        "Problem statement release at 9:00 AM",
+        "Mentor review at 2:00 PM",
+        "Final demos at 6:30 PM"
+      ],
+      "registration_deadline": "2026-04-08",
+      "tags": [
+        "AI",
+        "Productivity",
+        "Sustainability"
+      ]
+    },
+    {
+      "title": "Resume Clinic for Final Years",
+      "event_type": "Workshop",
+      "organizer": "Career Development Cell",
+      "date": "2026-03-28",
+      "time": "2:00 PM to 5:00 PM",
+      "location": "Placement Training Room",
+      "audience": "Final-year students preparing for placements and internships",
+      "description": "A guided workshop on resume structure, portfolio links, ATS-friendly formatting, and recruiter screening expectations.",
+      "agenda": [
+        "Resume review desk",
+        "Mock recruiter screening",
+        "Portfolio critique"
+      ],
+      "registration_deadline": "2026-03-26",
+      "tags": [
+        "Placements",
+        "Career Prep"
+      ]
+    },
+    {
+      "title": "Startup Demo Day",
+      "event_type": "Seminar",
+      "organizer": "Entrepreneurship Cell",
+      "date": "2026-04-18",
+      "time": "10:30 AM to 1:30 PM",
+      "location": "Incubation Hub Auditorium",
+      "audience": "Students interested in startups, product management, and venture funding",
+      "description": "Student startup teams present validated ideas to alumni founders, mentors, and the campus incubation committee.",
+      "agenda": [
+        "Startup demos",
+        "Mentor feedback",
+        "Incubator shortlist announcement"
+      ],
+      "registration_deadline": "2026-04-15",
+      "tags": [
+        "Startup",
+        "Innovation",
+        "Pitching"
+      ]
+    }
+  ]
+}

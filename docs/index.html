@@ -1,26 +1,37 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CampusPulse – Smart Campus Events Feed</title>
+<meta name="theme-color" content="#050816">
+<title>CampusPulse | AI-Powered Campus Intelligence</title>
 
-<!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-
-<!-- FullCalendar CSS -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
-
 <link rel="stylesheet" href="styles.css">
+
+<script>
+  (function () {
+    try {
+      var theme = localStorage.getItem("theme") || "dark";
+      if (theme === "dark") {
+        document.documentElement.classList.add("theme-dark");
+      }
+    } catch (error) {
+      document.documentElement.classList.add("theme-dark");
+    }
+  })();
+</script>
 </head>
 <body>
 
 <div id="loginModal">
-  <div class="modal-content">
+  <div class="modal-content elevated-panel">
+    <div class="dialog-badge">Secure Access</div>
     <h2>Login to CampusPulse</h2>
-    <p class="meta">Choose your role to continue.</p>
+    <p class="meta">Choose your role to continue into the campus intelligence workspace.</p>
     <div class="login-grid">
       <label>Name
         <input id="loginName" type="text" placeholder="Your name">
@@ -32,57 +43,166 @@
           <option value="admin">Admin</option>
         </select>
       </label>
-      <button id="loginBtn">Enter Portal</button>
+      <button id="loginBtn" class="primary">Enter Portal</button>
     </div>
   </div>
 </div>
 
-<div class="container hero">
-  <div class="topbar">
-    <div class="identity" id="identityBadge">
-      <strong id="identityName">Guest</strong>
-      <span class="role" id="identityRole">Student</span>
-    </div>
-    <div class="topbar-actions">
+<header class="site-nav" id="top">
+  <div class="container nav-inner">
+    <a href="#top" class="brand">
+      <span class="brand-mark">CP</span>
+      <span class="brand-copy">
+        <strong>CampusPulse</strong>
+        <small>AI campus operations</small>
+      </span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="#assistantSection">AI Assistant</a>
+      <a href="#filters">Events</a>
+      <a href="#clubsSection">Clubs</a>
+      <a href="#calendarSection">Calendar</a>
+      <a href="#feedbackSection">Feedback</a>
+    </nav>
+
+    <div class="nav-actions">
+      <div class="identity" id="identityBadge">
+        <strong id="identityName">Guest</strong>
+        <span class="role" id="identityRole">Student</span>
+      </div>
       <button class="secondary" id="notificationsBtn" title="Open notifications">Notifications <span id="notificationCount">0</span></button>
-      <button class="secondary" id="themeToggle" title="Toggle dark mode">Dark mode</button>
+      <button class="secondary" id="themeToggle" title="Toggle dark mode">Light mode</button>
       <button class="secondary" id="logoutBtn">Logout</button>
     </div>
   </div>
+</header>
+
+<section class="container hero-shell">
   <div class="hero-inner">
-    <div>
-      <div class="eyebrow">CampusPulse</div>
-      <h1>Smart campus events, perfectly curated.</h1>
-      <p>Discover workshops, hackathons, and seminars. Register in one click and keep everything synced with your calendar.</p>
+    <div class="hero-copy">
+      <div class="eyebrow">CampusPulse AI</div>
+      <h1>AI-powered campus intelligence with real events, club activity, and a live campus calendar.</h1>
+      <p>
+        Discover what matters on campus faster. CampusPulse keeps event cards, recommendations,
+        club information, calendar sync, and AI-guided answers together in one polished workflow.
+      </p>
       <div class="hero-actions">
-        <button class="primary" id="scrollFilters">Explore Events</button>
+        <button class="primary" id="scrollAssistant">Try AI Assistant</button>
+        <button class="secondary" id="scrollFilters">Explore Events</button>
         <button class="ghost" id="scrollCalendar">Jump to Calendar</button>
       </div>
+      <div class="hero-tags">
+        <span>Dynamic event feed</span>
+        <span>Club discovery</span>
+        <span>Calendar sync</span>
+        <span>Grounded AI answers</span>
+      </div>
     </div>
-    <div class="hero-card">
-      <h3>Live Campus Snapshot</h3>
+
+    <div class="hero-card elevated-panel">
+      <div class="section-copy">
+        <span class="section-chip">Live Snapshot</span>
+        <h3>Campus operations at a glance</h3>
+        <p class="meta">These metrics update from your live campus data and assistant status.</p>
+      </div>
       <div class="hero-stats">
-        <div class="hero-stat"><strong>20</strong><span>Upcoming events</span></div>
-        <div class="hero-stat"><strong>8</strong><span>Domains covered</span></div>
-        <div class="hero-stat"><strong>6</strong><span>Workshops</span></div>
-        <div class="hero-stat"><strong>6</strong><span>Hackathons</span></div>
+        <div class="hero-stat">
+          <strong id="heroUpcomingCount">0</strong>
+          <span>Upcoming events</span>
+        </div>
+        <div class="hero-stat">
+          <strong id="heroDomainCount">0</strong>
+          <span>Domains covered</span>
+        </div>
+        <div class="hero-stat">
+          <strong id="heroClubCount">0</strong>
+          <span>Active clubs</span>
+        </div>
+        <div class="hero-stat">
+          <strong id="heroRegistrationCount">0</strong>
+          <span>Your registrations</span>
+        </div>
+      </div>
+      <div class="hero-status-strip">
+        <span class="status-pill offline" id="heroAssistantStatus">Assistant offline</span>
+        <span class="meta" id="heroAssistantMeta">Start the FastAPI backend to enable grounded campus Q&amp;A.</span>
       </div>
     </div>
   </div>
-</div>
+</section>
 
-<div class="container">
+<main class="container page-stack">
+  <section class="section assistant-section" id="assistantSection">
+    <div class="section-header">
+      <div class="section-copy">
+        <span class="section-chip">Main Highlight</span>
+        <h2>AI Campus Assistant</h2>
+        <p class="meta">Ask about events, clubs, placements, and campus FAQs while keeping answers grounded in your knowledge base.</p>
+      </div>
+      <div class="assistant-toolbar">
+        <span class="status-pill offline" id="assistantStatusBadge">Backend offline</span>
+        <button class="secondary" id="assistantRefreshBtn" type="button">Refresh</button>
+        <button class="secondary" id="assistantInitBtn" type="button">Initialize KB</button>
+      </div>
+    </div>
 
-  <!-- Student portal -->
-  <div class="section" id="studentNotice">
-    <h2>Student Portal</h2>
-    <p class="meta">Students can browse events and register. Organiser requests are reviewed by Admin.</p>
-  </div>
+    <div class="assistant-layout">
+      <div class="assistant-console elevated-panel">
+        <div class="assistant-banner">
+          <div>
+            <strong id="assistantModeText">Waiting for backend connection</strong>
+            <p class="meta">Answers are limited to retrieved campus context and return source citations.</p>
+          </div>
+          <div class="assistant-hints">
+            <span>Ask about dates</span>
+            <span>Ask about clubs</span>
+            <span>Ask follow-ups</span>
+          </div>
+        </div>
 
-  <!-- Organiser portal -->
-  <div class="section hidden" id="organiserPortal">
-    <h2>Organiser Portal</h2>
-    <p class="meta">Submit a complete event request. Admin approval is required before it appears to students.</p>
+        <div id="assistantMessages" class="assistant-messages"></div>
+
+        <form id="assistantForm" class="assistant-form">
+          <input id="assistantInput" type="text" placeholder="Ask about a club, event, placement, or campus policy...">
+          <button id="assistantSendBtn" class="primary" type="submit">Ask AI</button>
+        </form>
+      </div>
+
+      <aside class="assistant-side">
+        <div class="insight-card elevated-panel">
+          <span class="section-chip">Grounded</span>
+          <h3>Source-aware responses</h3>
+          <p class="meta">Every answer returns citations so students and staff can verify the underlying campus record.</p>
+          <div id="assistantSourcesPreview" class="source-preview">Sources will appear here after the first response.</div>
+        </div>
+        <div class="insight-card elevated-panel">
+          <span class="section-chip">Follow-up Ready</span>
+          <h3>Short-term memory</h3>
+          <p class="meta">The assistant keeps recent conversation in context, so follow-up questions continue naturally.</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section" id="studentNotice">
+    <div class="section-header">
+      <div class="section-copy">
+        <span class="section-chip">Student Portal</span>
+        <h2>Browse and register with one click</h2>
+        <p class="meta">Students can explore event cards, get recommendations, register instantly, and track everything in the calendar.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section hidden" id="organiserPortal">
+    <div class="section-header">
+      <div class="section-copy">
+        <span class="section-chip">Organiser Portal</span>
+        <h2>Submit event requests for admin review</h2>
+        <p class="meta">Request an event add, edit, or removal without losing the current approval workflow.</p>
+      </div>
+    </div>
     <div class="controls">
       <label>Request Action
         <select id="requestAction">
@@ -118,16 +238,20 @@
       <textarea id="requestDescription" placeholder="Describe the event"></textarea>
     </label>
     <div class="controls">
-      <button id="submitRequest">Submit Request to Admin</button>
+      <button id="submitRequest" type="button">Submit Request to Admin</button>
     </div>
     <h3>My Requests</h3>
     <div id="organiserRequests" class="request-list"></div>
-  </div>
+  </section>
 
-  <!-- Admin portal -->
-  <div class="section hidden" id="adminPortal">
-    <h2>Admin Approval Queue</h2>
-    <p class="meta">Approve or reject organiser requests. Approved Add requests are published to students.</p>
+  <section class="section hidden" id="adminPortal">
+    <div class="section-header">
+      <div class="section-copy">
+        <span class="section-chip">Admin Portal</span>
+        <h2>Approve requests and manage live campus events</h2>
+        <p class="meta">The original approval queue and event management flow remain intact, now with a cleaner admin surface.</p>
+      </div>
+    </div>
     <div id="adminRequests" class="request-list"></div>
     <h3>Direct Event Management</h3>
     <div class="controls">
@@ -158,67 +282,135 @@
       <textarea id="adminEventDescription" placeholder="Describe event"></textarea>
     </label>
     <div class="controls">
-      <button id="adminCreateEventBtn" class="success">Create/Update Event</button>
-      <button id="adminDeleteEventBtn" class="danger">Delete Event</button>
-      <button id="adminResetFormBtn" class="secondary">Clear Form</button>
+      <button id="adminCreateEventBtn" class="success" type="button">Create/Update Event</button>
+      <button id="adminDeleteEventBtn" class="danger" type="button">Delete Event</button>
+      <button id="adminResetFormBtn" class="secondary" type="button">Clear Form</button>
     </div>
-  </div>
+  </section>
 
-  <!-- Filters -->
-  <div class="section" id="filters">
-    <h2>Filters</h2>
-    <div class="controls">
-      <label>Event Type:
-        <select id="typeFilter">
-          <option value="">All</option>
-          <option value="Workshop">Workshop</option>
-          <option value="Hackathon">Hackathon</option>
-          <option value="Seminar">Seminar</option>
-        </select>
-      </label>
-      <button id="applyFilters">Apply Filters</button>
+  <section class="section filter-section" id="filters">
+    <div class="filter-ambient" aria-hidden="true">
+      <span class="filter-blob blob-indigo"></span>
+      <span class="filter-blob blob-cyan"></span>
+      <span class="filter-blob blob-rose"></span>
     </div>
-
-    <div class="checkbox-group">
-      <span>Your Interests:</span>
-      <label><input type="checkbox" class="interest" value="AI"> AI</label>
-      <label><input type="checkbox" class="interest" value="Healthcare"> Healthcare</label>
-      <label><input type="checkbox" class="interest" value="Web Development"> Web Development</label>
-      <label><input type="checkbox" class="interest" value="Robotics"> Robotics</label>
-      <label><input type="checkbox" class="interest" value="Cybersecurity"> Cybersecurity</label>
-      <label><input type="checkbox" class="interest" value="Cloud Computing"> Cloud Computing</label>
-      <label><input type="checkbox" class="interest" value="Data Science"> Data Science</label>
-      <label><input type="checkbox" class="interest" value="IoT"> IoT</label>
+    <div class="section-header">
+      <div class="section-copy">
+        <span class="section-chip">Discovery</span>
+        <h2>Filter your event feed</h2>
+        <p class="meta">Keep the existing event data and recommendation logic, now arranged with clearer spacing and hierarchy.</p>
+      </div>
     </div>
-    <button id="applyRecommendation">Show Recommended for You</button>
-  </div>
+    <div class="filter-shell">
+      <div class="filter-panel">
+        <div class="filter-group-header">
+          <div>
+            <div class="filter-kicker">Event Type</div>
+            <p class="meta" id="filterTypeSummary">Showing all event types</p>
+          </div>
+          <span class="filter-result-pill" id="filterResultCount">0 events in view</span>
+        </div>
 
-  <!-- Recommended -->
-  <div class="section">
-    <h2>Recommended for You</h2>
+        <div class="filter-pill-row" role="group" aria-label="Event type filters">
+          <button class="filter-pill active" data-filter-type="" type="button" aria-pressed="true">All</button>
+          <button class="filter-pill" data-filter-type="Workshop" type="button" aria-pressed="false">Workshop</button>
+          <button class="filter-pill" data-filter-type="Hackathon" type="button" aria-pressed="false">Hackathon</button>
+          <button class="filter-pill" data-filter-type="Seminar" type="button" aria-pressed="false">Seminar</button>
+        </div>
+
+        <label class="filter-select-sr">Event Type
+          <select id="typeFilter">
+            <option value="">All</option>
+            <option value="Workshop">Workshop</option>
+            <option value="Hackathon">Hackathon</option>
+            <option value="Seminar">Seminar</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="filter-panel">
+        <div class="filter-group-header">
+          <div>
+            <div class="filter-kicker">Your Interests</div>
+            <p class="meta" id="interestSummary">0 interests selected</p>
+          </div>
+        </div>
+
+        <div class="checkbox-group interest-grid">
+          <label class="interest-pill"><input type="checkbox" class="interest" value="AI"><span>AI</span></label>
+          <label class="interest-pill"><input type="checkbox" class="interest" value="Healthcare"><span>Healthcare</span></label>
+          <label class="interest-pill"><input type="checkbox" class="interest" value="Web Development"><span>Web Development</span></label>
+          <label class="interest-pill"><input type="checkbox" class="interest" value="Robotics"><span>Robotics</span></label>
+          <label class="interest-pill"><input type="checkbox" class="interest" value="Cybersecurity"><span>Cybersecurity</span></label>
+          <label class="interest-pill"><input type="checkbox" class="interest" value="Cloud Computing"><span>Cloud Computing</span></label>
+          <label class="interest-pill"><input type="checkbox" class="interest" value="Data Science"><span>Data Science</span></label>
+          <label class="interest-pill"><input type="checkbox" class="interest" value="IoT"><span>IoT</span></label>
+        </div>
+      </div>
+
+      <div class="filter-actions">
+        <button id="applyFilters" class="secondary filter-action-button" type="button">Apply Filters</button>
+        <button id="applyRecommendation" class="primary filter-action-button" type="button">Show Recommended for You</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-copy">
+        <span class="section-chip">AI Ranked</span>
+        <h2>Recommended for You</h2>
+        <p class="meta">Your existing recommendation engine stays in place, with more polished cards and clearer emphasis.</p>
+      </div>
+    </div>
     <div id="recommended" class="grid recommended"></div>
-  </div>
+  </section>
 
-  <!-- All Events -->
-  <div class="section">
-    <h2>All Events</h2>
+  <section class="section" id="clubsSection">
+    <div class="section-header">
+      <div class="section-copy">
+        <span class="section-chip">Community</span>
+        <h2>Active Campus Clubs</h2>
+        <p class="meta">Club cards are pulled from the real campus knowledge base so the community layer stays connected to live assistant context.</p>
+      </div>
+    </div>
+    <div id="clubs" class="grid club-grid"></div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div class="section-copy">
+        <span class="section-chip">Live Feed</span>
+        <h2>All Events</h2>
+        <p class="meta">Your event cards and registration flow are unchanged underneath, only elevated visually.</p>
+      </div>
+    </div>
     <div id="events" class="grid"></div>
-  </div>
+  </section>
 
-  <!-- Calendar -->
-  <div class="section" id="calendarSection">
-    <h2>Event Calendar</h2>
-    <div class="controls">
-      <button id="exportIcsBtn" class="secondary">Export Registered (.ics)</button>
-      <button id="googleCalendarBtn" class="secondary">Open in Google Calendar</button>
+  <section class="section" id="calendarSection">
+    <div class="section-header">
+      <div class="section-copy">
+        <span class="section-chip">Calendar</span>
+        <h2>Event Calendar</h2>
+        <p class="meta">The same calendar component remains in place, now with a cleaner dark workspace and better spacing.</p>
+      </div>
+      <div class="controls">
+        <button id="exportIcsBtn" class="secondary" type="button">Export Registered (.ics)</button>
+        <button id="googleCalendarBtn" class="secondary" type="button">Open in Google Calendar</button>
+      </div>
     </div>
     <div id="calendar"></div>
-  </div>
+  </section>
 
-  <!-- Feedback + Sentiment -->
-  <div class="section" id="feedbackSection">
-    <h2>Feedback + Sentiment</h2>
-    <p class="meta">Leave event feedback and get automatic sentiment tagging for organisers and admins.</p>
+  <section class="section" id="feedbackSection">
+    <div class="section-header">
+      <div class="section-copy">
+        <span class="section-chip">Signals</span>
+        <h2>Feedback + Sentiment</h2>
+        <p class="meta">Leave event feedback and keep the original sentiment tagging workflow for organisers and admins.</p>
+      </div>
+    </div>
     <div class="controls">
       <label>Event
         <select id="feedbackEventId"></select>
@@ -226,43 +418,83 @@
       <label>Your Feedback
         <input type="text" id="feedbackText" placeholder="Great workshop with very practical content">
       </label>
-      <button id="submitFeedbackBtn">Submit Feedback</button>
+      <button id="submitFeedbackBtn" type="button">Submit Feedback</button>
     </div>
     <div id="feedbackList" class="request-list"></div>
-  </div>
+  </section>
 
-  <!-- Analytics -->
-  <div class="section hidden" id="analyticsDashboard">
-    <h2>Analytics Dashboard</h2>
-    <p class="meta">Admin-only KPIs for registrations, engagement, and sentiment.</p>
+  <section class="section hidden" id="analyticsDashboard">
+    <div class="section-header">
+      <div class="section-copy">
+        <span class="section-chip">Admin Insights</span>
+        <h2>Analytics Dashboard</h2>
+        <p class="meta">Keep the existing KPI and sentiment views while giving them a more product-grade presentation.</p>
+      </div>
+    </div>
     <div id="analyticsCards" class="analytics-grid"></div>
     <div id="analyticsBreakdown" class="analytics-breakdown"></div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div>
+      <strong>CampusPulse</strong>
+      <p class="meta">Campus intelligence for events, clubs, recommendations, and grounded AI assistance.</p>
+    </div>
+    <div class="footer-links">
+      <a href="#assistantSection">Assistant</a>
+      <a href="#filters">Events</a>
+      <a href="#clubsSection">Clubs</a>
+      <a href="#calendarSection">Calendar</a>
+    </div>
   </div>
+</footer>
 
-</div>
-
-<!-- Registration Modal -->
 <div id="registrationModal">
-  <div class="modal-content">
-    <span class="close-btn" onclick="closeModal()">×</span>
+  <div class="modal-content elevated-panel">
+    <span class="close-btn" onclick="closeModal()">x</span>
+    <div class="dialog-badge">Event Action</div>
     <h2 id="modalTitle"></h2>
     <p id="modalDescription"></p>
-    <button id="registerBtn"></button>
+    <button id="registerBtn" type="button"></button>
   </div>
 </div>
 
-<!-- Notifications Drawer -->
 <div id="notificationsDrawer" class="drawer hidden">
-  <div class="drawer-content">
+  <div class="drawer-content elevated-panel">
     <div class="drawer-head">
-      <h3>Notifications</h3>
-      <button class="secondary" id="markNotificationsRead">Mark all read</button>
+      <div>
+        <div class="dialog-badge">Inbox</div>
+        <h3>Notifications</h3>
+      </div>
+      <button class="secondary" id="markNotificationsRead" type="button">Mark all read</button>
     </div>
     <div id="notificationsList" class="request-list"></div>
   </div>
 </div>
 
-<!-- FullCalendar JS -->
+<button id="chatLauncher" class="chat-launcher" type="button" aria-label="Open AI assistant">
+  <span class="chat-launcher-dot" id="chatLauncherDot"></span>
+  AI
+</button>
+
+<section id="chatWidget" class="chat-widget hidden" aria-label="CampusPulse AI chat">
+  <div class="chat-head">
+    <div>
+      <div class="dialog-badge">CampusPulse AI</div>
+      <strong>Assistant</strong>
+      <p class="meta" id="chatStatusText">Backend offline</p>
+    </div>
+    <button id="chatClose" class="secondary icon-button" type="button">x</button>
+  </div>
+  <div id="chatMessages" class="chat-messages"></div>
+  <form id="chatForm" class="chat-form">
+    <input id="chatInput" type="text" placeholder="Ask a campus question...">
+    <button class="primary" type="submit">Send</button>
+  </form>
+</section>
+
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 <script src="app.js"></script>
 </body>

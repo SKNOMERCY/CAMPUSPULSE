@@ -1,0 +1,84 @@
+{
+  "placements": [
+    {
+      "company": "TechNova",
+      "role": "Software Engineer",
+      "package_lpa": "12 LPA",
+      "eligibility": "B.E./B.Tech CSE, IT, and ECE with 7.5 CGPA and above",
+      "timeline": "Online assessment in August, interviews in September",
+      "required_skills": [
+        "Data structures and algorithms",
+        "Object-oriented programming",
+        "SQL basics"
+      ],
+      "selection_rounds": [
+        "Online coding test",
+        "Technical interview",
+        "HR interview"
+      ],
+      "statistics": {
+        "applied": 210,
+        "shortlisted": 48,
+        "selected": 14
+      },
+      "tips": [
+        "Practice medium-level coding problems",
+        "Be ready to explain one academic project clearly"
+      ],
+      "description": "The drive focused on full-time software roles for students graduating in 2026."
+    },
+    {
+      "company": "CloudSphere",
+      "role": "Cloud Support Associate",
+      "package_lpa": "8.5 LPA",
+      "eligibility": "All circuit branches with no active backlogs",
+      "timeline": "Drive announced in July with onboarding after graduation",
+      "required_skills": [
+        "Operating systems fundamentals",
+        "Networking basics",
+        "Linux command line"
+      ],
+      "selection_rounds": [
+        "Aptitude test",
+        "Technical support simulation",
+        "Panel interview"
+      ],
+      "statistics": {
+        "applied": 180,
+        "shortlisted": 52,
+        "selected": 19
+      },
+      "tips": [
+        "Revise networking protocols",
+        "Prepare concise answers about troubleshooting experience"
+      ],
+      "description": "The company hired for client-facing cloud operations and incident response roles."
+    },
+    {
+      "company": "DataMinds Analytics",
+      "role": "Data Analyst Intern",
+      "package_lpa": "Internship stipend of INR 35,000 per month with PPO potential",
+      "eligibility": "Third-year students from CSE, IT, ECE, and Mathematics",
+      "timeline": "Application window closes on 2026-04-02 and interviews happen the following week",
+      "required_skills": [
+        "Python",
+        "SQL",
+        "Data visualization"
+      ],
+      "selection_rounds": [
+        "Case-based online assignment",
+        "Analyst interview"
+      ],
+      "statistics": {
+        "applied": 125,
+        "shortlisted": 30,
+        "selected": 8
+      },
+      "tips": [
+        "Show one dashboard or analytics project",
+        "Practice explaining metrics in plain language"
+      ],
+      "description": "This internship targets students interested in business intelligence and reporting pipelines."
+    }
+  ]
+}

@@ -2,14 +2,18 @@
 // ---------------- DATABASE + REALTIME LAYER ----------------
 const STORAGE_KEYS = {
   events: 'eventsData',
+  clubs: 'clubsData',
   requests: 'eventRequests',
   session: 'campusSession',
   theme: 'theme',
   notifications: 'notificationsData',
   feedback: 'feedbackData',
   registrations: 'registrationsData',
-  realtime: 'campusRealtimeMessage'
+  realtime: 'campusRealtimeMessage',
+  assistantSession: 'assistantSessionId'
 };
+
+const AI_API_BASE = 'http://127.0.0.1:8000';
 
 const BASE_EVENTS = [
   {id:1,title:'AI in Healthcare Workshop',type:'Workshop',date:'2026-02-10',domain:['AI','Healthcare'],description:'Hands-on session on AI applications in healthcare',relevance_score:90},
@@ -32,6 +36,45 @@ const BASE_EVENTS = [
   {id:18,title:'Cloud Security Seminar',type:'Seminar',date:'2026-03-22',domain:['Cloud Computing','Cybersecurity'],description:'Securing cloud platforms',relevance_score:85},
   {id:19,title:'IoT Smart Home Workshop',type:'Workshop',date:'2026-03-24',domain:['IoT'],description:'Hands-on IoT smart home devices',relevance_score:89},
   {id:20,title:'Data Science Hackathon',type:'Hackathon',date:'2026-03-26',domain:['Data Science'],description:'Compete in data science challenges',relevance_score:92}
+];
+
+const BASE_CLUBS = [
+  {
+    name: 'AI Society',
+    focus_area: 'Artificial intelligence, machine learning, and responsible AI projects',
+    description: 'The club runs weekly hands-on sessions, peer study circles, and semester-long project pods for students interested in applied AI.',
+    meeting_schedule: 'Every Wednesday at 5:30 PM in Innovation Lab 2',
+    location: 'Innovation Lab 2',
+    faculty_coordinator: 'Dr. Meera Nair',
+    student_leads: ['Ananya Rao', 'Rahul Menon'],
+    membership: 'Open to all departments. First-year students can join without prior coding experience.',
+    recent_activities: ['Hosted a GenAI bootcamp with 180 participants', 'Built a smart attendance prototype for the campus incubator'],
+    contact_email: 'aisociety@campuspulse.edu'
+  },
+  {
+    name: 'Robotics Club',
+    focus_area: 'Embedded systems, robotics design, and autonomous systems',
+    description: 'Members build line followers, drones, and mobile robots for inter-college competitions and internal demos.',
+    meeting_schedule: 'Every Friday at 4:00 PM in the Mechatronics Workshop',
+    location: 'Mechatronics Workshop',
+    faculty_coordinator: 'Prof. Arvind Iyer',
+    student_leads: ['Sneha Kulkarni', 'Vikram S'],
+    membership: 'Open to students from engineering departments after a short orientation session.',
+    recent_activities: ['Won second place in the South Zone Robo Race', 'Conducted a soldering and sensor integration workshop'],
+    contact_email: 'robotics@campuspulse.edu'
+  },
+  {
+    name: 'Entrepreneurship Cell',
+    focus_area: 'Startup ideation, venture building, and founder mentoring',
+    description: 'The cell connects students with mentors, startup founders, and pitch events throughout the academic year.',
+    meeting_schedule: 'Alternate Saturdays at 11:00 AM in the Incubation Hub',
+    location: 'Incubation Hub',
+    faculty_coordinator: 'Dr. Kavitha Raman',
+    student_leads: ['Ishaan Patel', 'Madhuri Sen'],
+    membership: 'Open campus-wide for students interested in startups, product building, and business strategy.',
+    recent_activities: ['Ran a founder AMA series with alumni entrepreneurs', 'Organized a campus startup validation sprint'],
+    contact_email: 'ecell@campuspulse.edu'
+  }
 ];
 
 const db = {
@@ -91,13 +134,11 @@ function emitRealtime(type, payload){
   }
 }
 
-function handleRealtimeMessage(message, external){
+async function handleRealtimeMessage(message, external){
   if (!message || !external) return;
   if (message.type === 'events_updated') {
-    renderEvents(allEvents);
-    syncCalendarEvents();
-    renderFeedbackEventOptions();
-    renderAnalytics();
+    await loadEvents();
+    renderEverything();
   }
   if (message.type === 'new_notification') {
     renderNotifications();
@@ -106,7 +147,15 @@ function handleRealtimeMessage(message, external){
 
 // ---------------- STATE ----------------
 let allEvents = [];
+let allClubs = [];
 let calendar = null;
+const assistantState = {
+  sessionId: getAssistantSessionId(),
+  messages: [],
+  typing: false,
+  backend: null,
+  widgetOpen: false
+};
 
 // ---------------- AUTH ----------------
 const loginModal = document.getElementById('loginModal');
@@ -157,7 +206,7 @@ function applyTheme(theme){
 }
 
 function initTheme(){
-  const theme = localStorage.getItem(STORAGE_KEYS.theme) || 'light';
+  const theme = localStorage.getItem(STORAGE_KEYS.theme) || 'dark';
   applyTheme(theme);
   themeToggle.onclick = () => {
     const next = document.documentElement.classList.contains('theme-dark') ? 'light' : 'dark';
@@ -171,6 +220,24 @@ async function loadEvents(){
   const events = await db.read(STORAGE_KEYS.events, BASE_EVENTS);
   allEvents = events;
   return events;
+}
+
+async function loadClubs(){
+  const clubs = await db.read(STORAGE_KEYS.clubs, BASE_CLUBS);
+  allClubs = Array.isArray(clubs) && clubs.length ? clubs : structuredClone(BASE_CLUBS);
+
+  try {
+    const response = await fetch('../backend/data/clubs.json', { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Unable to load clubs: ${response.status}`);
+    const payload = await response.json();
+    const nextClubs = Array.isArray(payload.clubs) && payload.clubs.length ? payload.clubs : structuredClone(BASE_CLUBS);
+    allClubs = nextClubs;
+    await db.write(STORAGE_KEYS.clubs, nextClubs);
+  } catch {
+    // Keep cached or bundled campus data when the JSON file is unavailable.
+  }
+
+  return allClubs;
 }
 
 async function saveEvents(events){
@@ -251,10 +318,10 @@ function renderOrganiserRequests(){
     const item = document.createElement('div');
     item.className = 'request-item';
     item.innerHTML = `
-      <div><strong>${request.action}</strong> - ${event.title} (ID ${request.requestedEventId})</div>
-      <div class="meta">${event.type} | ${event.date} | ${event.domain.join(', ')}</div>
+      <div><strong>${escapeHtml(request.action)}</strong> - ${escapeHtml(event.title)} (ID ${request.requestedEventId})</div>
+      <div class="meta">${escapeHtml(event.type)} | ${escapeHtml(event.date)} | ${escapeHtml(event.domain.join(', '))}</div>
       <div class="meta">Score: ${event.relevance_score}</div>
-      <span class="request-status ${request.status.toLowerCase()}">${request.status}</span>
+      <span class="request-status ${request.status.toLowerCase()}">${escapeHtml(request.status)}</span>
     `;
     container.appendChild(item);
   });
@@ -275,10 +342,10 @@ function renderAdminRequests(){
     const item = document.createElement('div');
     item.className = 'request-item';
     item.innerHTML = `
-      <div><strong>${request.action}</strong> - ${event.title} (ID ${request.requestedEventId})</div>
-      <div class="meta">Requested by ${request.organiser}</div>
-      <div class="meta">${event.type} | ${event.date} | ${event.domain.join(', ')}</div>
-      <span class="request-status ${request.status.toLowerCase()}">${request.status}</span>
+      <div><strong>${escapeHtml(request.action)}</strong> - ${escapeHtml(event.title)} (ID ${request.requestedEventId})</div>
+      <div class="meta">Requested by ${escapeHtml(request.organiser)}</div>
+      <div class="meta">${escapeHtml(event.type)} | ${escapeHtml(event.date)} | ${escapeHtml(event.domain.join(', '))}</div>
+      <span class="request-status ${request.status.toLowerCase()}">${escapeHtml(request.status)}</span>
     `;
 
     if (request.status === 'Pending') {
@@ -442,8 +509,8 @@ function renderNotifications(){
     item.className = 'request-item';
     if (!isRead(notification, session.name)) item.classList.add('unread');
     item.innerHTML = `
-      <div>${notification.text}</div>
-      <div class="meta">${new Date(notification.createdAt).toLocaleString()}</div>
+      <div>${escapeHtml(notification.text)}</div>
+      <div class="meta">${escapeHtml(new Date(notification.createdAt).toLocaleString())}</div>
     `;
     item.onclick = () => markNotificationRead(notification.id);
     list.appendChild(item);
@@ -499,7 +566,7 @@ function setFeedback(items){
 function renderFeedbackEventOptions(){
   const select = document.getElementById('feedbackEventId');
   if (!select) return;
-  select.innerHTML = allEvents.map((event) => `<option value="${event.id}">${event.title}</option>`).join('');
+  select.innerHTML = allEvents.map((event) => `<option value="${event.id}">${escapeHtml(event.title)}</option>`).join('');
 }
 
 function submitFeedback(){
@@ -545,9 +612,9 @@ function renderFeedback(){
     const item = document.createElement('div');
     item.className = 'request-item';
     item.innerHTML = `
-      <div><strong>${entry.eventTitle}</strong> - ${entry.sentiment.label} (${entry.sentiment.score})</div>
-      <div class="meta">${entry.user}: ${entry.text}</div>
-      <div class="meta">${new Date(entry.createdAt).toLocaleString()}</div>
+      <div><strong>${escapeHtml(entry.eventTitle)}</strong> - ${escapeHtml(entry.sentiment.label)} (${entry.sentiment.score})</div>
+      <div class="meta">${escapeHtml(entry.user)}: ${escapeHtml(entry.text)}</div>
+      <div class="meta">${escapeHtml(new Date(entry.createdAt).toLocaleString())}</div>
     `;
     container.appendChild(item);
   });
@@ -597,6 +664,23 @@ function getAiRecommendations(selectedInterests){
     .sort((a, b) => b.ai_score - a.ai_score)
     .slice(0, 5);
 }
+
+function escapeHtml(value){
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function getAssistantSessionId(){
+  const existing = localStorage.getItem(STORAGE_KEYS.assistantSession);
+  if (existing) return existing;
+  const created = `assistant-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  localStorage.setItem(STORAGE_KEYS.assistantSession, created);
+  return created;
+}
 // ---------------- UI ----------------
 function createCard(event, showScore = false, topHighlight = false){
   const card = document.createElement('div');
@@ -604,13 +688,20 @@ function createCard(event, showScore = false, topHighlight = false){
   if (topHighlight) card.classList.add('top');
 
   const session = getSession();
-  const badges = event.domain.map((domain) => `<span class="badge">${domain}</span>`).join(' ');
+  const badges = event.domain.map((domain) => `<span class="badge">${escapeHtml(domain)}</span>`).join(' ');
   card.innerHTML = `
-    <h3>${event.title}</h3>
-    <div class="meta"><b>Type:</b> ${event.type} | <b>Date:</b> ${event.date}</div>
+    <div class="card-topline">
+      <span class="type-pill">${escapeHtml(event.type)}</span>
+      <span class="date-pill">${escapeHtml(event.date)}</span>
+    </div>
+    <h3>${escapeHtml(event.title)}</h3>
+    <div class="meta">${escapeHtml(event.domain.join(', '))}</div>
     <div class="badges">${badges}</div>
-    <p>${event.description}</p>
+    <p>${escapeHtml(event.description)}</p>
     ${showScore ? `<div class="score">AI Score: ${Math.round(event.ai_score || event.relevance_score)}</div>` : ''}
+    <div class="card-footer">
+      <span class="meta">Tap to ${session?.role === 'organiser' ? 'request changes' : session?.role === 'admin' ? 'manage this event' : 'register'}</span>
+    </div>
   `;
 
   if (isRegistered(event.id) && session?.role === 'student') {
@@ -637,9 +728,45 @@ function createCard(event, showScore = false, topHighlight = false){
   return card;
 }
 
+function createClubCard(club){
+  const card = document.createElement('div');
+  card.className = 'club-card';
+  const activities = (club.recent_activities || [])
+    .slice(0, 2)
+    .map((item) => `<li>${escapeHtml(item)}</li>`)
+    .join('');
+  const leads = Array.isArray(club.student_leads) ? club.student_leads.join(', ') : '';
+
+  card.innerHTML = `
+    <div class="card-topline">
+      <span class="type-pill">Club</span>
+      <span class="date-pill">${escapeHtml(club.location || 'Campus')}</span>
+    </div>
+    <h3>${escapeHtml(club.name || 'Campus Club')}</h3>
+    <div class="meta">${escapeHtml(club.focus_area || '')}</div>
+    <p>${escapeHtml(club.description || '')}</p>
+    <div class="club-meta">
+      <div><strong>Meet:</strong> ${escapeHtml(club.meeting_schedule || 'Schedule TBA')}</div>
+      <div><strong>Faculty:</strong> ${escapeHtml(club.faculty_coordinator || 'TBA')}</div>
+      <div><strong>Leads:</strong> ${escapeHtml(leads || 'TBA')}</div>
+    </div>
+    <ul class="club-activity-list">${activities}</ul>
+    <div class="club-footer">
+      <span class="badge">${escapeHtml(club.membership || 'Open to students')}</span>
+      <a class="club-link" href="mailto:${escapeHtml(club.contact_email || '')}">Contact</a>
+    </div>
+  `;
+
+  return card;
+}
+
 function renderEvents(events){
   const container = document.getElementById('events');
   container.innerHTML = '';
+  if (!events.length) {
+    container.innerHTML = '<div class="empty-state">No events matched your current filters.</div>';
+    return;
+  }
   events.forEach((event) => container.appendChild(createCard(event)));
 }
 
@@ -647,7 +774,63 @@ function renderRecommended(selectedInterests){
   const container = document.getElementById('recommended');
   const recommended = getAiRecommendations(selectedInterests);
   container.innerHTML = '';
+  if (!recommended.length) {
+    container.innerHTML = '<div class="empty-state">Login as a student to see personalized recommendations.</div>';
+    return;
+  }
   recommended.forEach((event, index) => container.appendChild(createCard(event, true, index < 3)));
+}
+
+function renderClubs(){
+  const container = document.getElementById('clubs');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!allClubs.length) {
+    container.innerHTML = '<div class="empty-state">No clubs available right now.</div>';
+    return;
+  }
+  allClubs.forEach((club) => container.appendChild(createClubCard(club)));
+}
+
+function getSelectedInterests(){
+  return [...document.querySelectorAll('.interest:checked')].map((checkbox) => checkbox.value);
+}
+
+function getFilteredEvents(){
+  const type = document.getElementById('typeFilter')?.value || '';
+  return type ? allEvents.filter((event) => event.type === type) : allEvents;
+}
+
+function syncFilterUi(){
+  const type = document.getElementById('typeFilter')?.value || '';
+  const selectedInterests = getSelectedInterests();
+  const filteredEvents = getFilteredEvents();
+
+  document.querySelectorAll('.filter-pill').forEach((button) => {
+    const active = button.dataset.filterType === type;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+
+  const typeSummary = document.getElementById('filterTypeSummary');
+  const interestSummary = document.getElementById('interestSummary');
+  const resultCount = document.getElementById('filterResultCount');
+
+  if (typeSummary) {
+    typeSummary.textContent = type ? `${type} events selected` : 'Showing all event types';
+  }
+  if (interestSummary) {
+    interestSummary.textContent = `${selectedInterests.length} ${selectedInterests.length === 1 ? 'interest' : 'interests'} selected`;
+  }
+  if (resultCount) {
+    resultCount.textContent = `${filteredEvents.length} ${filteredEvents.length === 1 ? 'event' : 'events'} in view`;
+  }
+}
+
+function renderFilteredEvents(){
+  const filteredEvents = getFilteredEvents();
+  renderEvents(filteredEvents);
+  syncFilterUi();
 }
 
 function openRegistrationModal(event){
@@ -665,9 +848,7 @@ function openRegistrationModal(event){
     if (registered) unregisterEvent(event);
     else registerEvent(event);
     closeModal();
-    renderEvents(allEvents);
-    updateCalendarMarks();
-    renderAnalytics();
+    renderEverything();
   };
 
   document.getElementById('registrationModal').style.display = 'flex';
@@ -678,10 +859,19 @@ function closeModal(){
 }
 
 // ---------------- CALENDAR + SMART INTEGRATION ----------------
+function buildCalendarEvents(){
+  return allEvents.map((event) => ({
+    id: String(event.id),
+    title: event.title,
+    start: event.date,
+    classNames: [event.type]
+  }));
+}
+
 function syncCalendarEvents(){
   if (!calendar) return;
   calendar.removeAllEvents();
-  calendar.addEventSource(allEvents.map((event) => ({ id: event.id, title: event.title, start: event.date, className: event.type })));
+  calendar.addEventSource(buildCalendarEvents());
   updateCalendarMarks();
 }
 
@@ -693,10 +883,19 @@ function updateCalendarMarks(){
       entry.setProp('backgroundColor', '#115e59');
       return;
     }
-    const className = entry.extendedProps.className;
-    if (className === 'Hackathon') entry.setProp('backgroundColor', '#7c3aed');
-    if (className === 'Workshop') entry.setProp('backgroundColor', '#0f766e');
-    if (className === 'Seminar') entry.setProp('backgroundColor', '#d97706');
+    const className = Array.isArray(entry.classNames) && entry.classNames.length ? entry.classNames[0] : '';
+    if (className === 'Hackathon') {
+      entry.setProp('backgroundColor', '#7c3aed');
+      entry.setProp('borderColor', '#7c3aed');
+    }
+    if (className === 'Workshop') {
+      entry.setProp('backgroundColor', '#0891b2');
+      entry.setProp('borderColor', '#0891b2');
+    }
+    if (className === 'Seminar') {
+      entry.setProp('backgroundColor', '#f59e0b');
+      entry.setProp('borderColor', '#f59e0b');
+    }
   });
 }
 
@@ -870,6 +1069,214 @@ async function deleteAdminEvent(){
   renderEverything();
 }
 
+// ---------------- ASSISTANT + HERO ----------------
+function formatAssistantText(text){
+  return escapeHtml(text).replaceAll('\n', '<br>');
+}
+
+function addAssistantMessage(role, text, sources = []){
+  assistantState.messages.push({
+    id: `${role}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    role,
+    text,
+    sources
+  });
+  renderAssistantMessages();
+}
+
+function seedAssistantMessages(){
+  if (assistantState.messages.length) return;
+  addAssistantMessage(
+    'assistant',
+    'Ask about events, clubs, placements, or campus policies. I will answer from the campus knowledge base and cite my sources.'
+  );
+}
+
+function setAssistantTyping(value){
+  assistantState.typing = value;
+  renderAssistantMessages();
+}
+
+function renderAssistantThread(container){
+  if (!container) return;
+  container.innerHTML = '';
+
+  assistantState.messages.forEach((message) => {
+    const row = document.createElement('div');
+    row.className = `message-row ${message.role}`;
+
+    const bubble = document.createElement('div');
+    bubble.className = `message-bubble ${message.role}`;
+    bubble.innerHTML = `<div class="message-copy">${formatAssistantText(message.text)}</div>`;
+
+    if (message.sources && message.sources.length) {
+      const sources = document.createElement('div');
+      sources.className = 'message-sources';
+      sources.innerHTML = message.sources.map((source) => `<span>${escapeHtml(source)}</span>`).join('');
+      bubble.appendChild(sources);
+    }
+
+    row.appendChild(bubble);
+    container.appendChild(row);
+  });
+
+  if (assistantState.typing) {
+    const typing = document.createElement('div');
+    typing.className = 'message-row assistant';
+    typing.innerHTML = `
+      <div class="message-bubble assistant">
+        <div class="typing-indicator">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    `;
+    container.appendChild(typing);
+  }
+
+  container.scrollTop = container.scrollHeight;
+}
+
+function renderAssistantMessages(){
+  renderAssistantThread(document.getElementById('assistantMessages'));
+  renderAssistantThread(document.getElementById('chatMessages'));
+
+  const preview = document.getElementById('assistantSourcesPreview');
+  if (!preview) return;
+  const latestSources = [...assistantState.messages]
+    .reverse()
+    .find((message) => message.role === 'assistant' && message.sources?.length)?.sources || [];
+  preview.textContent = latestSources.length ? latestSources.join(' | ') : 'Sources will appear here after the first response.';
+}
+
+function updateAssistantStatus(){
+  const badge = document.getElementById('assistantStatusBadge');
+  const heroBadge = document.getElementById('heroAssistantStatus');
+  const heroMeta = document.getElementById('heroAssistantMeta');
+  const modeText = document.getElementById('assistantModeText');
+  const chatStatusText = document.getElementById('chatStatusText');
+  const launcherDot = document.getElementById('chatLauncherDot');
+
+  const health = assistantState.backend;
+  const online = Boolean(health);
+  const label = online ? 'Backend online' : 'Backend offline';
+  const mode = online
+    ? `${health.answer_mode} mode | embeddings: ${health.embedding_provider || 'unknown'}`
+    : 'Waiting for backend connection';
+  const heroCopy = online
+    ? `Assistant ready${health.initialized ? ' with indexed campus data.' : ', but knowledge base needs initialization.'}`
+    : 'Start the FastAPI backend to enable grounded campus Q&A.';
+
+  [badge, heroBadge].forEach((element) => {
+    if (!element) return;
+    element.textContent = label;
+    element.classList.toggle('online', online);
+    element.classList.toggle('offline', !online);
+  });
+
+  if (modeText) modeText.textContent = mode;
+  if (heroMeta) heroMeta.textContent = heroCopy;
+  if (chatStatusText) chatStatusText.textContent = label;
+  if (launcherDot) launcherDot.classList.toggle('online', online);
+}
+
+async function refreshAssistantHealth(){
+  try {
+    const response = await fetch(`${AI_API_BASE}/health`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Health check failed: ${response.status}`);
+    assistantState.backend = await response.json();
+  } catch {
+    assistantState.backend = null;
+  }
+
+  updateAssistantStatus();
+  updateHeroStats();
+}
+
+async function initializeAssistantKnowledgeBase(){
+  const button = document.getElementById('assistantInitBtn');
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Initializing...';
+  }
+
+  try {
+    const response = await fetch(`${AI_API_BASE}/init`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rebuild: false })
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail || 'Initialization failed.');
+    addAssistantMessage(
+      'assistant',
+      `Knowledge base ready with ${payload.chunks_indexed} chunks using ${payload.provider || 'local'} embeddings.`,
+      payload.index_path ? [payload.index_path] : []
+    );
+    await refreshAssistantHealth();
+  } catch (error) {
+    addAssistantMessage('assistant', error.message || 'Unable to initialize the knowledge base.');
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = 'Initialize KB';
+    }
+  }
+}
+
+async function sendAssistantQuery(rawQuery){
+  const query = rawQuery.trim();
+  if (!query) return;
+
+  addAssistantMessage('user', query);
+  setAssistantTyping(true);
+
+  if (!assistantState.backend) await refreshAssistantHealth();
+
+  if (!assistantState.backend) {
+    setAssistantTyping(false);
+    addAssistantMessage('assistant', 'The backend is offline. Start FastAPI on http://127.0.0.1:8000 and try again.');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${AI_API_BASE}/query`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query,
+        session_id: assistantState.sessionId,
+        top_k: 4
+      })
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail || 'Unable to get an answer right now.');
+    addAssistantMessage('assistant', payload.answer || "I don't have enough information.", payload.sources || []);
+  } catch (error) {
+    assistantState.backend = null;
+    updateAssistantStatus();
+    addAssistantMessage('assistant', error.message || 'Unable to get an answer right now.');
+  } finally {
+    setAssistantTyping(false);
+  }
+}
+
+function setChatWidgetOpen(open){
+  assistantState.widgetOpen = open;
+  document.getElementById('chatWidget').classList.toggle('hidden', !open);
+}
+
+function updateHeroStats(){
+  const uniqueDomains = new Set(allEvents.flatMap((event) => event.domain || []));
+  const registrations = getRegistered().length;
+
+  document.getElementById('heroUpcomingCount').textContent = String(allEvents.length);
+  document.getElementById('heroDomainCount').textContent = String(uniqueDomains.size);
+  document.getElementById('heroClubCount').textContent = String(allClubs.length);
+  document.getElementById('heroRegistrationCount').textContent = String(registrations);
+}
+
 // ---------------- BINDINGS ----------------
 function bindUiEvents(){
   loginBtn.onclick = () => {
@@ -929,14 +1336,32 @@ function bindUiEvents(){
   };
 
   document.getElementById('applyFilters').onclick = () => {
-    const type = document.getElementById('typeFilter').value;
-    const filtered = type ? allEvents.filter((event) => event.type === type) : allEvents;
-    renderEvents(filtered);
+    renderFilteredEvents();
   };
 
   document.getElementById('applyRecommendation').onclick = () => {
-    const selectedInterests = [...document.querySelectorAll('.interest:checked')].map((checkbox) => checkbox.value);
-    renderRecommended(selectedInterests);
+    renderRecommended(getSelectedInterests());
+  };
+
+  document.querySelectorAll('.filter-pill').forEach((button) => {
+    button.onclick = () => {
+      document.getElementById('typeFilter').value = button.dataset.filterType || '';
+      renderFilteredEvents();
+    };
+  });
+
+  document.getElementById('typeFilter').onchange = () => {
+    syncFilterUi();
+  };
+
+  document.querySelectorAll('.interest').forEach((checkbox) => {
+    checkbox.onchange = () => {
+      syncFilterUi();
+    };
+  });
+
+  document.getElementById('scrollAssistant').onclick = () => {
+    document.getElementById('assistantSection').scrollIntoView({ behavior: 'smooth' });
   };
 
   document.getElementById('scrollFilters').onclick = () => {
@@ -960,10 +1385,36 @@ function bindUiEvents(){
   document.getElementById('adminCreateEventBtn').onclick = upsertAdminEvent;
   document.getElementById('adminDeleteEventBtn').onclick = deleteAdminEvent;
   document.getElementById('adminResetFormBtn').onclick = clearAdminForm;
+
+  document.getElementById('assistantRefreshBtn').onclick = refreshAssistantHealth;
+  document.getElementById('assistantInitBtn').onclick = initializeAssistantKnowledgeBase;
+  document.getElementById('assistantForm').onsubmit = async (event) => {
+    event.preventDefault();
+    const input = document.getElementById('assistantInput');
+    const query = input.value;
+    input.value = '';
+    await sendAssistantQuery(query);
+  };
+
+  document.getElementById('chatLauncher').onclick = () => {
+    setChatWidgetOpen(!assistantState.widgetOpen);
+  };
+  document.getElementById('chatClose').onclick = () => {
+    setChatWidgetOpen(false);
+  };
+  document.getElementById('chatForm').onsubmit = async (event) => {
+    event.preventDefault();
+    const input = document.getElementById('chatInput');
+    const query = input.value;
+    input.value = '';
+    await sendAssistantQuery(query);
+  };
 }
 
 function renderEverything(){
-  renderEvents(allEvents);
+  renderFilteredEvents();
+  renderRecommended(getSelectedInterests());
+  renderClubs();
   renderOrganiserRequests();
   renderAdminRequests();
   renderFeedbackEventOptions();
@@ -971,20 +1422,24 @@ function renderEverything(){
   renderNotifications();
   renderAnalytics();
   syncCalendarEvents();
+  updateHeroStats();
+  syncFilterUi();
   setRequestAutoId();
 }
 
 // ---------------- BOOT ----------------
 async function init(){
+  seedAssistantMessages();
   await loadEvents();
+  await loadClubs();
   initTheme();
   initRealtime();
   bindUiEvents();
 
   calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
     initialView: 'dayGridMonth',
-    height: 600,
-    events: allEvents.map((event) => ({ id: event.id, title: event.title, start: event.date, className: event.type })),
+    height: 640,
+    events: buildCalendarEvents(),
     eventClick: (info) => openRegistrationModal(allEvents.find((event) => event.id === Number(info.event.id)))
   });
   calendar.render();
@@ -999,7 +1454,10 @@ async function init(){
     loginModal.style.display = 'flex';
   }
 
+  renderAssistantMessages();
   renderEverything();
+  await refreshAssistantHealth();
+  setInterval(refreshAssistantHealth, 30000);
 }
 
 init();

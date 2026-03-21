@@ -1,0 +1,1 @@
+"""Campus assistant backend package."""
